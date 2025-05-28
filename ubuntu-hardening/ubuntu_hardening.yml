@@ -1,0 +1,69 @@
+---
+- name: CIS Basic Ubuntu Hardening
+  hosts: localhost
+  become: true
+
+  tasks:
+
+    - name: Ensure /var/log is on a separate partition
+      shell: mount | grep -w "/var/log"
+      register: log_partition
+      failed_when: log_partition.rc != 0
+      ignore_errors: yes
+
+    - name: Disable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '0'
+        state: present
+        sysctl_set: yes
+        reload: yes
+
+    - name: Disable IPv6
+      sysctl:
+        name: net.ipv6.conf.all.disable_ipv6
+        value: '1'
+        state: present
+        sysctl_set: yes
+        reload: yes
+
+    - name: Ensure secure ICMP redirects are not accepted
+      sysctl:
+        name: net.ipv4.conf.all.accept_redirects
+        value: '0'
+        state: present
+        sysctl_set: yes
+        reload: yes
+
+    - name: Set SSH LogLevel to INFO
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?LogLevel'
+        line: 'LogLevel INFO'
+        state: present
+
+    - name: Configure login banner
+      copy:
+        content: "Authorized uses only. All activity may be monitored and reported."
+        dest: /etc/issue
+
+    - name: Configure logout banner
+      copy:
+        content: "Authorized uses only. All activity may be monitored and reported."
+        dest: /etc/issue.net
+
+    - name: Collect login/logout events
+      lineinfile:
+        path: /etc/audit/audit.rules
+        line: '-w /var/log/faillog -p wa -k logins'
+
+    - name: Collect file deletion events by users
+      lineinfile:
+        path: /etc/audit/audit.rules
+        line: '-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=4294967295 -k delete'
+
+    - name: Ensure password expires in 90 days or less
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_MAX_DAYS'
+        line: 'PASS_MAX_DAYS   90'
