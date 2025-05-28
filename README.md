@@ -6,7 +6,7 @@ This project showcases a full-stack deployment pipeline for a secure Flask-based
 
 ---
 
-## 🚀 Tech Stack
+##  Tech Stack
 
 - **Backend:** Python Flask
 - **Containerization:** Docker
@@ -18,7 +18,7 @@ This project showcases a full-stack deployment pipeline for a secure Flask-based
 
 ---
 
-## 🛠️ Features & Implementations
+##  Features & Implementations
 
 ### ✅ Web Server
 - Built a basic Flask application with routing logic in `routes.py`.
